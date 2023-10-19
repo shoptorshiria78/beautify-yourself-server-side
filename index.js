@@ -22,24 +22,61 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-   
+
     // await client.connect();
 
     const productCollection = client.db('ProductDB').collection("product");
     const brandCollection = client.db('ProductDB').collection("brand");
+    const myCartCollection = client.db('ProductDB').collection("myCart");
 
-    app.post('/product', async(req, res)=>{
-        const newProduct = req.body;
-        const result = await productCollection.insertOne(newProduct);
-        res.send(result);
+    app.post('/product', async (req, res) => {
+      const newProduct = req.body;
+      const result = await productCollection.insertOne(newProduct);
+      res.send(result)
     })
 
-    app.get('/brand', async(req,res)=>{
+    app.post('/myCart', async (req, res) => {
+      const newProduct = req.body;
+      const result = await myCartCollection.insertOne(newProduct);
+      res.send(result)
+    })
+    app.get('/myCart', async (req, res) => {
+      const cursor = myCartCollection.find();
+      const result = await cursor.toArray();
+      res.send(result)
+    })
+
+    app.get('/brand', async (req, res) => {
       const cursor = brandCollection.find();
       const result = await cursor.toArray();
-      res.send(result);
-      console.log(result);
+      res.send(result)
     })
+
+    app.get('/product', async (req, res) => {
+      const cursor = productCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+
+    })
+
+    app.get('/product/:brand', async (req, res) => {
+      const brand = req.params.brand;
+      const filter = { brand: brand }
+      const result = await productCollection.find(filter).toArray();
+      res.send(result);
+
+    })
+
+    app.get('/productDetails/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await productCollection.findOne(query);
+      res.send(result);
+
+    })
+
+
+
 
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
@@ -51,10 +88,10 @@ async function run() {
 run().catch(console.dir);
 
 
-app.get('/', async(req,res)=>{
-    res.send("server is ready")
+app.get('/', async (req, res) => {
+  res.send("server is ready")
 })
 
-app.listen(port, ()=>{
-    console.log(`server is running on port:${port}`)
+app.listen(port, () => {
+  console.log(`server is running on port:${port}`)
 })
