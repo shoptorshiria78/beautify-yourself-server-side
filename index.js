@@ -26,11 +26,19 @@ async function run() {
     // await client.connect();
 
     const productCollection = client.db('ProductDB').collection("product");
+    const brandCollection = client.db('ProductDB').collection("brand");
 
     app.post('/product', async(req, res)=>{
         const newProduct = req.body;
         const result = await productCollection.insertOne(newProduct);
         res.send(result);
+    })
+
+    app.get('/brand', async(req,res)=>{
+      const cursor = brandCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+      console.log(result);
     })
 
     await client.db("admin").command({ ping: 1 });
