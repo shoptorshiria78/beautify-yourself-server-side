@@ -28,6 +28,7 @@ async function run() {
     const productCollection = client.db('ProductDB').collection("product");
     const brandCollection = client.db('ProductDB').collection("brand");
     const myCartCollection = client.db('ProductDB').collection("myCart");
+    const userCollection = client.db('ProductDB').collection("user");
 
     app.post('/product', async (req, res) => {
       const newProduct = req.body;
@@ -39,6 +40,12 @@ async function run() {
       const newProduct = req.body;
       const result = await myCartCollection.insertOne(newProduct);
       res.send(result)
+    })
+
+    app.post('/user', async(req, res)=>{
+      const newUser = req.body;
+      const result = await userCollection.insertOne(newUser);
+      res.send(result);
     })
     app.get('/myCart', async (req, res) => {
       const cursor = myCartCollection.find();
