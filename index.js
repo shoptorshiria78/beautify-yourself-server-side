@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 require("dotenv").config()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
@@ -36,6 +37,27 @@ async function run() {
     const myCartCollection = client.db('ProductDB').collection("myCart");
     const userCollection = client.db('ProductDB').collection("user");
 
+    // jwt related Api
+    app.post('/jwt', async(req,res)=>{
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN,{ expiresIn:'1h'});
+      res.send({token})
+    })
+    // middlewares
+    const verifyToken = (req, res, next)=>{
+      if(!req.headers.authorization){
+          return  res.status(401).send({message: 'Unauthorized Access'})
+      }
+      const token = req.headers.authorization.split(' ')[1];
+      jwt.verify(token, process.env.ACCESS_TOKEN, (error, decoded)=>{
+        if(error){
+          return res.status(401).send({message: 'Unauthorized Access'})
+        }
+        req.decoded = decoded;
+        next()
+      })
+    }
+
     app.post('/product', async (req, res) => {
       const newProduct = req.body;
       const result = await productCollection.insertOne(newProduct);
@@ -50,6 +72,11 @@ async function run() {
 
     app.post('/user', async(req, res)=>{
       const newUser = req.body;
+      const query = {email: newUser.email};
+      const existingUser = await userCollection.findOne(query);
+      if(existingUser){
+        return res.send({message:" user already exists", insertedId: null})
+      }
       const result = await userCollection.insertOne(newUser);
       res.send(result);
     })
