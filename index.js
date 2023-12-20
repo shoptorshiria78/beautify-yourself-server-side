@@ -48,7 +48,7 @@ async function run() {
 
     // verifyToken
     const verifyToken = (req, res, next) => {
-      console.log(req.headers.authorization)
+      // console.log(req.headers.authorization)
       if (!req.headers.authorization) {
         return res.status(401).send({ message: 'Unauthorized Access' })
       }
@@ -63,10 +63,11 @@ async function run() {
     }
 
     // verifyAdmin
-    const verifyAdmin = (req, res, next) => {
+    const verifyAdmin = async(req, res, next) => {
       const email = req.decoded.email;
       const query = { email: email };
-      const user = userCollection.findOne(query);
+      const user = await  userCollection.findOne(query);
+      console.log('verify admin',user)
       const isAdmin = user?.role === "admin";
       if(!isAdmin){
         return res.status(403).send({message:"Forbidden access"})
@@ -74,13 +75,13 @@ async function run() {
       next()
     }
 
-    app.post('/product', async (req, res) => {
+    app.post('/product', verifyToken,verifyAdmin, async (req, res) => {
       const newProduct = req.body;
       const result = await productCollection.insertOne(newProduct);
       res.send(result)
     })
 
-    app.post('/myCart', async (req, res) => {
+    app.post('/myCart',verifyToken, async (req, res) => {
       const newProduct = req.body;
       const result = await myCartCollection.insertOne(newProduct);
       res.send(result)
